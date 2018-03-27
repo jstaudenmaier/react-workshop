@@ -8,125 +8,113 @@ import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
 import "./styles.css";
 
-class Select extends React.Component {
-  static propTypes = {
-    onChange: PropTypes.func,
-    value: PropTypes.any,
-    defaultValue: PropTypes.any
-  };
-
-  isControlled() {
-    return this.props.value != null;
-  }
-
-  state = {
-    showOptions: false,
-    value: this.props.defaultValue
-  };
-
-  toggleOptions = () => {
-    this.setState({ showOptions: !this.state.showOptions });
-  };
-
-  componentDidMount() {
-    if (this.isControlled() && !this.props.onChange) {
-      console.warn(
-        "You provided a `value` prop to a <Select> without an `onChange` handler. This will render a read-only field..."
-      );
+class Option extends React.Component {
+    static propTypes = {
+        onSelect: PropTypes.func
     }
-  }
 
-  selectValue(value) {
-    if (this.isControlled()) {
-      if (this.props.onChange) {
-        this.props.onChange(value);
-      }
-    } else {
-      this.setState({ value });
+    render() {
+        return <div onClick={this.props.onSelect} className="option">{this.props.children}</div>;
     }
-  }
-
-  render() {
-    const value = (this.isControlled() ? this.props : this.state).value;
-
-    let label;
-    React.Children.forEach(this.props.children, child => {
-      if (child.props.value === value) {
-        label = child.props.children;
-      }
-    });
-
-    const children = React.Children.map(this.props.children, child => {
-      return React.cloneElement(child, {
-        _onSelect: () => this.selectValue(child.props.value)
-      });
-    });
-
-    return (
-      <div className="select" onClick={this.toggleOptions}>
-        <div className="label">
-          {label} <span className="arrow">▾</span>
-        </div>
-        {this.state.showOptions && (
-          <div className="options">{children}</div>
-        )}
-      </div>
-    );
-  }
 }
 
-class Option extends React.Component {
-  render() {
-    return (
-      <div className="option" onClick={this.props._onSelect}>
-        {this.props.children}
-      </div>
-    );
-  }
+class Select extends React.Component {
+    static propTypes = {
+        onChange: PropTypes.func,
+        value: PropTypes.any,
+        defaultValue: PropTypes.any
+    };
+
+    state = {
+        showOptions: false,
+        value: this.props.defaultValue
+    };
+
+    isControlled() {
+        return (this.props.value != null);
+    }
+
+    toggleOptions = () => {
+        this.setState({showOptions: !this.state.showOptions})
+    };
+
+    selectValue = (value) => {
+        if (this.isControlled()) {
+            this.props.onChange(value);
+        } else {
+            this.setState({value});
+        }
+    }
+
+    render() {
+        const value = (this.isControlled() ? this.props : this.state).value;
+        let label;
+        React.Children.forEach(this.props.children, child => {
+            if (child.props.value === this.state.value) {
+                label = child.props.children;
+            }
+        });
+        const children = React.Children.map(this.props.children, (child) =>
+            React.cloneElement(child, {
+                onSelect: () => this.selectValue(child.props.value)
+            }));
+        return (
+
+            <div className="select" onClick={this.toggleOptions}>
+                <div className="label">
+                    {label} <span className="arrow">▾</span>
+                </div>
+                {this.state.showOptions && (
+                    <div className="options">{children}</div>
+                )}
+            </div>
+        )
+            ;
+    }
 }
 
 class App extends React.Component {
-  state = {
-    selectValue: "dosa"
-  };
+    state = {
+        selectValue: "dosa"
+    };
 
-  setToMintChutney = () => {
-    this.setState({ selectValue: "mint-chutney" });
-  };
+    setToMintChutney = () => {
+        this.setState({selectValue: "mint-chutney"});
+    };
 
-  render() {
-    return (
-      <div>
-        <h1>Select + Option</h1>
+    render() {
+        return (
+            <div>
+                <h1>Select + Option</h1>
 
-        <h2>Controlled</h2>
-        <pre>{JSON.stringify(this.state, null, 2)}</pre>
-        <p>
-          <button onClick={this.setToMintChutney}>
-            Set to Mint Chutney
-          </button>
-        </p>
+                <h2>Controlled</h2>
+                <pre>{JSON.stringify(this.state, null, 2)}</pre>
+                <p>
+                    <button onClick={this.setToMintChutney}>
+                        Set to Mint Chutney
+                    </button>
+                </p>
 
-        <Select
-          value={this.state.selectValue}
-          onChange={value => this.setState({ selectValue: value })}
-        >
-          <Option value="tikka-masala">Tikka Masala</Option>
-          <Option value="tandoori-chicken">Tandoori Chicken</Option>
-          <Option value="dosa">Dosa</Option>
-          <Option value="mint-chutney">Mint Chutney</Option>
-        </Select>
+                <Select
+                    value={this.state.selectValue}
+                    onChange={value => this.setState({selectValue: value})}
+                >
+                    <Option value="tikka-masala">Tikka Masala</Option>
+                    <Option value="tandoori-chicken">Tandoori Chicken</Option>
+                    <Option value="dosa">Dosa</Option>
+                    <Option value="mint-chutney">Mint Chutney</Option>
+                </Select>
 
-        <h2>Uncontrolled</h2>
-        <Select defaultValue="tikka-masala">
-          <Option value="tikka-masala">Tikka Masala</Option>
-          <Option value="tandoori-chicken">Tandoori Chicken</Option>
-          <Option value="dosa">Dosa</Option>
-          <Option value="mint-chutney">Mint Chutney</Option>
-        </Select>
-      </div>
-    );
-  }
+                <h2>Uncontrolled</h2>
+                <Select defaultValue="tikka-masala">
+                    <Option value="tikka-masala">Tikka Masala</Option>
+                    <Option value="tandoori-chicken">Tandoori Chicken</Option>
+                    <Option value="dosa">Dosa</Option>
+                    <Option value="mint-chutney">Mint Chutney</Option>
+                </Select>
+            </div>
+        );
+    }
 }
 
-ReactDOM.render(<App />, document.getElementById("app"));
+ReactDOM.render(<App/>, document.getElementById("app"));

@@ -20,40 +20,18 @@ import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
 
 class Form extends React.Component {
-  static propTypes = {
-    onSubmit: PropTypes.func
-  };
-
   static childContextTypes = {
     form: PropTypes.shape({
-      change: PropTypes.func.isRequired,
-      submit: PropTypes.func.isRequired,
-      reset: PropTypes.func.isRequired
-    }).isRequired
+        onSubmit: PropTypes.func.isRequired
+    })
+
   };
 
-  values = {};
-  resetListeners = [];
-
   getChildContext() {
-    return {
-      form: {
-        change: (name, value) => {
-          this.values[name] = value;
-        },
-        submit: () => {
-          if (this.props.onSubmit) {
-            this.props.onSubmit(this.values);
-          }
-        },
-        reset: () => {
-          this.resetListeners.forEach(listener => listener());
-        },
-        addResetListener: listener => {
-          this.resetListeners.push(listener);
-        }
-      }
-    };
+      return {
+        form: {
+          onSubmit:() => this.props.onSubmit()
+        }}
   }
 
   render() {
@@ -63,52 +41,21 @@ class Form extends React.Component {
 
 class SubmitButton extends React.Component {
   static contextTypes = {
-    form: PropTypes.shape({
-      submit: PropTypes.func.isRequired
-    }).isRequired
-  };
+      form: PropTypes.shape({
+          onSubmit: PropTypes.func.isRequired
+      })
+  }
 
   render() {
-    return (
-      <button onClick={this.context.form.submit}>
-        {this.props.children}
-      </button>
-    );
+    return <button onClick={this.context.form.onSubmit}>{this.props.children}</button>;
   }
 }
 
 class TextInput extends React.Component {
   static contextTypes = {
-    form: PropTypes.shape({
-      change: PropTypes.func.isRequired,
-      submit: PropTypes.func.isRequired,
-      addResetListener: PropTypes.func.isRequired
-    }).isRequired
-  };
-
-  state = {
-    value: this.props.defaultValue
-  };
-
-  handleKeyDown = event => {
-    if (event.key === "Enter") {
-      this.context.form.submit();
-    }
-  };
-
-  handleChange = event => {
-    this.setState({ value: event.target.value }, () => {
-      this.context.form.change(this.props.name, this.state.value);
-    });
-  };
-
-  handleReset = () => {
-    this.setState({ value: this.props.defaultValue });
-  };
-
-  componentDidMount() {
-    this.context.form.change(this.props.name, this.props.defaultValue);
-    this.context.form.addResetListener(this.handleReset);
+      form: PropTypes.shape({
+          onSubmit: PropTypes.func.isRequired
+      })
   }
 
   render() {
@@ -116,34 +63,21 @@ class TextInput extends React.Component {
       <input
         type="text"
         name={this.props.name}
-        value={this.state.value}
         placeholder={this.props.placeholder}
-        onKeyDown={this.handleKeyDown}
-        onChange={this.handleChange}
+        onKeyDown={ event => {
+          if (event.key === "Enter"){
+            this.context.form.onSubmit();
+          }
+        }
+        }
       />
     );
   }
 }
 
-class ResetButton extends React.Component {
-  static contextTypes = {
-    form: PropTypes.shape({
-      reset: PropTypes.func.isRequired
-    }).isRequired
-  };
-
-  render() {
-    return (
-      <button onClick={this.context.form.reset}>
-        {this.props.children}
-      </button>
-    );
-  }
-}
-
 class App extends React.Component {
-  handleSubmit = values => {
-    console.log(values);
+  handleSubmit = () => {
+    alert("YOU WIN!");
   };
 
   render() {
@@ -155,20 +89,11 @@ class App extends React.Component {
 
         <Form onSubmit={this.handleSubmit}>
           <p>
-            <TextInput
-              name="firstName"
-              placeholder="First Name"
-              defaultValue="Michael"
-            />{" "}
-            <TextInput
-              name="lastName"
-              placeholder="Last Name"
-              defaultValue="Jackson"
-            />
+            <TextInput name="firstName" placeholder="First Name" />{" "}
+            <TextInput name="lastName" placeholder="Last Name" />
           </p>
           <p>
             <SubmitButton>Submit</SubmitButton>
-            <ResetButton>Reset</ResetButton>
           </p>
         </Form>
       </div>

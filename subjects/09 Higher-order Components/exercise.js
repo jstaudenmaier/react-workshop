@@ -14,81 +14,81 @@ import React from "react";
 import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
 
-function withMouse(Component) {
-  return class extends React.Component {
-    state = { x: 0, y: 0 };
+function withCat(Component) {
+    return class extends React.Component {
+        static propTypes = {
+            mouse: PropTypes.shape({
+                    x: PropTypes.number.isRequired,
+                    y: PropTypes.number.isRequired
+                }
+            ).isRequired
+        };
 
-    handleMouseMove = event => {
-      this.setState({ x: event.clientX, y: event.clientY });
-    };
+        state = {x: 0, y: 0};
 
-    render() {
-      return (
-        <div onMouseMove={this.handleMouseMove}>
-          <Component mouse={this.state} />
-        </div>
-      );
+        componentDidUpdate() {
+            const {mouse} = this.props;
+            setTimeout(() => {
+                    this.setState({x: mouse.x - 50, y: mouse.y - 50})
+                }
+                , 200
+            )
+        }
+
+        render() {
+            return (
+                <div>
+                    <Component {...this.props} />
+                    <div className="cat" style={{top: this.state.y, left: this.state.x}}/>
+                </div>
+            )
+        }
     }
-  };
 }
 
-function withCat(Component) {
-  return class extends React.Component {
-    static propTypes = {
-      mouse: PropTypes.shape({
-        x: PropTypes.number.isRequired,
-        y: PropTypes.number.isRequired
-      }).isRequired
+function withMouse(Component) {
+    return class extends React.Component {
+        state = {x: 0, y: 0};
+
+        handleMouseMove = (event) => {
+            this.setState({x: event.clientX, y: event.clientY});
+        };
+
+        render() {
+            return (<div onMouseMove={this.handleMouseMove}>
+                    <Component {...this.props} mouse={this.state}/>
+                </div>
+            );
+        }
+
     };
-
-    state = { x: 0, y: 0 };
-
-    componentDidUpdate() {
-      const { mouse } = this.props;
-
-      setTimeout(() => {
-        this.setState({ x: mouse.x - 50, y: mouse.y - 50 });
-      }, 200);
-    }
-
-    render() {
-      const { x, y } = this.state;
-
-      return (
-        <div>
-          <Component {...this.props} />
-          <div className="cat" style={{ top: y, left: x }} />
-        </div>
-      );
-    }
-  };
 }
 
 class App extends React.Component {
-  static propTypes = {
-    mouse: PropTypes.shape({
-      x: PropTypes.number.isRequired,
-      y: PropTypes.number.isRequired
-    }).isRequired
-  };
+    static propTypes = {
+        mouse: PropTypes.shape({
+            x: PropTypes.number.isRequired,
+            y: PropTypes.number.isRequired
+        }).isRequired
+    };
 
-  render() {
-    const { mouse } = this.props;
+    render() {
+        const {mouse} = this.props;
 
-    return (
-      <div className="container">
-        {mouse ? (
-          <h1>
-            The mouse position is ({mouse.x}, {mouse.y})
-          </h1>
-        ) : (
-          <h1>We don't know the mouse position yet :(</h1>
-        )}
-      </div>
-    );
-  }
+        return (
+            <div className="container">
+                {mouse ? (
+                    <h1>
+                        The mouse position is ({mouse.x}, {mouse.y})
+                    </h1>
+                ) : (
+                    <h1>We don't know the mouse position yet :(</h1>
+                )}
+            </div>
+        );
+    }
 }
 
 const AppWithMouse = withMouse(withCat(App));
 
-ReactDOM.render(<AppWithMouse />, document.getElementById("app"));
+ReactDOM.render(<AppWithMouse/>, document.getElementById("app"));
